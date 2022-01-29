@@ -1,0 +1,6 @@
+.pio
+.vscode
+creds*
+!creds*.sample
+include/client.crt.h
+include/client.key.h
