@@ -2,7 +2,12 @@
 
 ## Info
 
-This is the code for my morphing clock project. See [the main Readme file](../) for features that are already implemented or still work-in-progress.
+This is just a modifications of https://github.com/bogd/esp32-morphing-clock.
+Changes to the project:
+* Removed MQTT
+* Removed light sensor
+* Removed weather forecast with icons
+* Removed weather sensor
 
 ## Before You Start
 
