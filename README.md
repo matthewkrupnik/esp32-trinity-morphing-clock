@@ -8,6 +8,9 @@ Changes to the project:
 * Removed light sensor
 * Removed weather forecast with icons
 * Removed weather sensor
+* Removed buzzer
+* Removed OTA update
+* Values hard coded for 64x32 matrix display
 
 ## Before You Start
 
