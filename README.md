@@ -2,7 +2,7 @@
 
 ## Info
 
-This is just a modifications of https://github.com/bogd/esp32-morphing-clock.
+This is just a modifications of https://github.com/bogd/esp32-morphing-clock. I've tested it on ESP32 Trinity board.
 Changes to the project:
 * Removed MQTT
 * Removed light sensor
