@@ -1,0 +1,12 @@
+#ifndef CREDS_ACCUWEATHER_H
+#define CREDS_ACCUWEATHER_H
+
+#define ACCUWEATHER_API_KEY "API_KEY"
+#define ACCUWEATHER_CITY_CODE "CITY_CODE"
+
+#define WIFI_SSID "WIFI_SSID"
+#define WIFI_PASSWORD "WIFI_PASSWORD"
+
+#define NTP_SERVER "ro.pool.ntp.org"
+
+#endif
