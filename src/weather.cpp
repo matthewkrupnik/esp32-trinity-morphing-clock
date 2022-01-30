@@ -6,19 +6,8 @@
 #include <ArduinoJson.h>
 //#include <Fonts/FreeSerifBold12pt7b.h>
 
-int8_t minTempToday = 0;
-int8_t maxTempToday = 0;
-
-uint32_t static heart_8x8[] = {
-  0x000000, 0xFF0000, 0xFF0000, 0x000000, 0xFF0000, 0xFF0000, 0x000000, 0x000000, 
-  0xFF0000, 0x000000, 0x000000, 0xFF0000, 0x000000, 0x000000, 0xFF0000, 0x000000, 
-  0xFF0000, 0x000000, 0x000000, 0x000000, 0x000000, 0x000000, 0xFF0000, 0x000000, 
-  0x000000, 0xFF0000, 0x000000, 0x000000, 0x000000, 0xFF0000, 0x000000, 0x000000, 
-  0x000000, 0xFF0000, 0x000000, 0x000000, 0x000000, 0xFF0000, 0x000000, 0x000000, 
-  0x000000, 0x000000, 0xFF0000, 0x000000, 0xFF0000, 0x000000, 0x000000, 0x000000, 
-  0x000000, 0x000000, 0x000000, 0xFF0000, 0x000000, 0x000000, 0x000000, 0x000000, 
-  0x000000, 0x000000, 0x000000, 0x000000, 0x000000, 0x000000, 0x000000, 0x000000
-};
+int8_t currentTempMetric = 0;
+int8_t currentTempImperial = 0;
 
 // Get color565 directly from 24-bit RGB value
 // TODO - replace arrays with color565 values!
@@ -35,10 +24,10 @@ void displayTodaysTempRange() {
   dma_display->setTextColor(TEMPRANGE_COLOR);
 
   dma_display->setCursor(TEMPRANGE_X, TEMPRANGE_Y);   
-  dma_display->printf("%3d/%3d C", minTempToday, maxTempToday);
+  dma_display->printf("%3dC/%3dF", currentTempMetric, currentTempImperial);
   
   // Draw the degree symbol manually
-  dma_display->fillRect(TEMPRANGE_X + 44, TEMPRANGE_Y, 2, 2, TEMPRANGE_COLOR);
+  //dma_display->fillRect(TEMPRANGE_X + 44, TEMPRANGE_Y, 2, 2, TEMPRANGE_COLOR);
 }
 
 void displayWeatherData() {
@@ -73,73 +62,18 @@ void drawBitmap(int startx, int starty, int width, int height, uint32_t *bitmap,
   else drawBitmap(startx, starty, width, height, bitmap);
 }
 
-void drawHeartBeat() {
-  if (!heartBeat) {
-    dma_display->fillRect(HEARTBEAT_X, HEARTBEAT_Y, 8, 8, 0);
-  }
-  else {
-    drawBitmap(HEARTBEAT_X, HEARTBEAT_Y, 8, 8, heart_8x8);
-  }
-}
-
-// Return a mapping from the Accuweather icons to the
-// internal icons: 
-// 0 - sun
-// 1 - clouds
-// 2 - showers
-// 3 - rain
-// 4 - storm
-// 5 - snow
-// Based on https://apidev.accuweather.com/developers/weatherIcons
-int accuWeatherIconMapping(int icon) {
-  if (icon <= 5)  return 0;
-  if (icon <= 11) return 1;
-  if (icon <= 14) return 2;
-  if (icon <= 17) return 4;
-  if (icon == 18) return 3;
-  if (icon <= 29) return 5;
-  if (icon == 30) return 0;
-  if (icon <= 32) return 2;
-  return 0;
-}
-
 void getAccuWeatherData() {
   HTTPClient http;
   char url[256];
   DynamicJsonDocument doc(16384); // Might be overkill, since the Accuweather JSONs are about 3-5K in length - but better safe...
 
-  StaticJsonDocument<300> filter;
-  filter["DailyForecasts"][0]["Date"] = true;
-  filter["DailyForecasts"][0]["Temperature"]["Minimum"]["Value"] = true;
-  filter["DailyForecasts"][0]["Temperature"]["Maximum"]["Value"] = true;
-  filter["DailyForecasts"][0]["Day"]["Icon"] = true;
-
-  /* Filter should look like this:
-  {
-	"DailyForecasts": [
-		"Date": True,
-		"Temperature": {
-			"Minimum": {
-				"Value": True
-			},
-      "Maximum": {
-        "Value": True
-      }
-		},
-	"Day": {
-		"Icon": true
-	}
-	]
-  } */
-
-  snprintf( url, 256, "http://dataservice.accuweather.com/forecasts/v1/daily/5day/%s?apikey=%s&metric=true", 
+  snprintf( url, 256, "http://dataservice.accuweather.com/currentconditions/v1/%s?apikey=%s", 
       ACCUWEATHER_CITY_CODE, ACCUWEATHER_API_KEY);
 
   http.begin(url);
   http.GET(); //TODO - check status code!
 
-  DeserializationError error = deserializeJson( doc, http.getStream(), 
-          DeserializationOption::Filter(filter));
+  DeserializationError error = deserializeJson( doc, http.getStream());
 
   if (error) {
     Serial.print(F("deserialization failed: "));
@@ -153,37 +87,9 @@ void getAccuWeatherData() {
   //serializeJsonPretty(doc, Serial);
 
   //Populate the variables: 
-  minTempToday = round( double(doc["DailyForecasts"][0]["Temperature"]["Minimum"]["Value"]) );
-  maxTempToday = round( double(doc["DailyForecasts"][0]["Temperature"]["Maximum"]["Value"]) );
+  currentTempMetric = round( double(doc[0]["Temperature"]["Metric"]["Value"]) );
+  currentTempImperial = round( double(doc[0]["Temperature"]["Imperial"]["Value"]) );
   
-  Serial.println(minTempToday);
-  Serial.println(maxTempToday);
+  Serial.println(currentTempMetric);
+  Serial.println(currentTempImperial);
 }
-
-/* Start of code to get data from openweathermap - based on work by https://github.com/lefty01 
-*/
-void getOpenWeatherData() { /*
-  // sanity check units ...
-  // strcmp(units, "standard") ... "metric", or "imperial"
-  snprintf(url, 128, "http://api.openweathermap.org/data/2.5/forecast?id=%u&units=%s&appid=%s",
-	   loc_id, units, appid);
-
-  
-  // Allocate the largest possible document (platform dependent)
-  // DynamicJsonDocument doc(ESP.getMaxFreeBlockSize());
-  DynamicJsonDocument doc(8192);
-
-  http.useHTTP10(true);
-  http.begin(url);
-  http.GET();
-
-  DeserializationError error = deserializeJson(doc, http.getStream(),
-					       DeserializationOption::Filter(filter));
-  if (error) {
-    Serial.print(F("deserializeJson() failed: "));
-    Serial.println(error.f_str());
-    return 1;
-  }
-  */
-}
-

@@ -30,9 +30,6 @@ unsigned long prevEpoch;
 unsigned long lastNTPUpdate;
 unsigned long lastWeatherUpdate;
 
-//Just a blinking heart to show the main thread is still alive...
-bool blinkOn;
-
 void setup(){
   display_init();
 
@@ -103,9 +100,6 @@ void loop() {
       clearStatusMessage();
     }
   }
-
-  heartBeat = !heartBeat;
-  drawHeartBeat();
 
   //Reset the watchdog timer as long as the main task is running
   esp_task_wdt_reset();

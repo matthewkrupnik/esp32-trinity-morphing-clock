@@ -41,8 +41,8 @@ extern bool clockStartingUp;
 extern bool heartBeat;
 
 //Weather data
-extern int8_t minTempToday;
-extern int8_t maxTempToday;
+extern int8_t currentTempMetric;
+extern int8_t currentTempImperial;
 
 #endif
 

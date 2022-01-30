@@ -43,9 +43,6 @@
 // Log messages at the bottom
 #define LOG_MESSAGE_COLOR ((0xFF & 0xF8) << 8) | ((0x00 & 0xFC) << 3) | (0x00 >> 3)
 
-#define HEARTBEAT_X 57
-#define HEARTBEAT_Y 0
-
 // Watchdog settings
 #define WDT_TIMEOUT 60   // If the WDT is not reset within X seconds, reboot the unit
         // Do NOT set this too low, or the WDT will prevent OTA updates from completing!!
